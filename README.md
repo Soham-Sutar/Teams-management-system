@@ -1,1 +1,0 @@
-# Teams-management-system
