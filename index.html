@@ -2,8 +2,11 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Teams Management System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0f14">
+<title>MentorBoard — Teams Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -40,7 +43,7 @@
         <span>Sign In</span>
         <span class="btn-arrow">→</span>
       </button>
-      <p class="login-hint">Forgot Password? Contact:8088059421</p>
+      <p class="login-hint">Forgot Password? Contact:8088059421 to reste password</p>
     </div>
   </div>
 </div>
@@ -48,12 +51,15 @@
 <!-- APP SHELL -->
 <div id="app" class="page">
 
+  <!-- SIDEBAR OVERLAY -->
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
   <!-- SIDEBAR -->
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
       <div class="brand-icon small">◈</div>
       <span class="brand-name">MentorBoard</span>
-      <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+      <button class="sidebar-close" onclick="closeSidebar()">✕</button>
     </div>
     <nav class="sidebar-nav">
       <a href="#" class="nav-item active" data-page="dashboard" onclick="navigate('dashboard', this)">
@@ -71,6 +77,10 @@
       <a href="#" class="nav-item" data-page="calendar" onclick="navigate('calendar', this)">
         <span class="nav-icon">▦</span>
         <span>Calendar</span>
+      </a>
+      <a href="#" class="nav-item nav-item-contact" onclick="openContactModal(); return false;">
+        <span class="nav-icon">✉</span>
+        <span>Contact Dev</span>
       </a>
     </nav>
     <div class="sidebar-footer">
@@ -90,10 +100,11 @@
     <!-- TOP BAR -->
     <header class="topbar">
       <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <button class="hamburger" onclick="openSidebar()" aria-label="Open menu">☰</button>
         <h2 id="page-title">Dashboard</h2>
       </div>
       <div class="topbar-right">
+        <button class="btn-contact-topbar" onclick="openContactModal()" title="Contact Developer">✉</button>
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
           <span id="theme-icon">☀</span>
         </button>
@@ -205,9 +216,34 @@
         </div>
       </section>
 
-    </div>
-  </div>
-</div>
+    </div><!-- /content-area -->
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="bnav-btn active" data-page="dashboard" onclick="bnavNavigate('dashboard', this)">
+        <span class="bnav-icon">⊞</span>
+        <span class="bnav-label">Home</span>
+      </button>
+      <button class="bnav-btn" data-page="teams" onclick="bnavNavigate('teams', this)">
+        <span class="bnav-icon">◎</span>
+        <span class="bnav-label">Teams</span>
+      </button>
+      <button class="bnav-btn" data-page="deadlines" onclick="bnavNavigate('deadlines', this)">
+        <span class="bnav-icon">◷</span>
+        <span class="bnav-label">Deadlines</span>
+      </button>
+      <button class="bnav-btn" data-page="calendar" onclick="bnavNavigate('calendar', this)">
+        <span class="bnav-icon">▦</span>
+        <span class="bnav-label">Calendar</span>
+      </button>
+      <button class="bnav-btn" onclick="openContactModal()">
+        <span class="bnav-icon">✉</span>
+        <span class="bnav-label">Contact</span>
+      </button>
+    </nav>
+
+  </div><!-- /main-content -->
+</div><!-- /app -->
 
 <!-- TEAM MODAL -->
 <div id="team-modal" class="modal-overlay hidden">
@@ -334,6 +370,50 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeTotalMarksModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveTotalMarks()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div id="contact-modal" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>Contact Developer</h3>
+      <button class="modal-close" onclick="closeContactModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="contact-card">
+        <div class="contact-avatar">S</div>
+        <div class="contact-name">Soham</div>
+        <div class="contact-role">Developer · MentorBoard</div>
+      </div>
+      <div class="contact-links">
+        <a href="mailto:sohamsutar2204@gmail.com" class="contact-link">
+          <span class="contact-link-icon">✉</span>
+          <div class="contact-link-info">
+            <div class="contact-link-label">Email</div>
+            <div class="contact-link-value">sohamsutar2204@gmail.com</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+        <a href="tel:+918088059421" class="contact-link">
+          <span class="contact-link-icon">📞</span>
+          <div class="contact-link-info">
+            <div class="contact-link-label">Phone</div>
+            <div class="contact-link-value">+91 8088059421</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+        <a href="https://www.linkedin.com/in/soham-sutar-b6664b291/" target="_blank" rel="noopener" class="contact-link">
+          <span class="contact-link-icon">💼</span>
+          <div class="contact-link-info">
+            <div class="contact-link-label">LinkedIn</div>
+            <div class="contact-link-value">linkedin.com/in/soham-sutar</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+      </div>
+      <p class="contact-note">Reach out for any issues, feedback, or feature requests regarding MentorBoard.</p>
     </div>
   </div>
 </div>

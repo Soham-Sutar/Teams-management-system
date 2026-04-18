@@ -21,8 +21,6 @@ const FIREBASE_CONFIG = {
   appId: "1:9108743947:web:eab0d03bb64d16ef3e640e"
 };
 
-
-
 // ============================================================
 // LOCAL DATA STORE (used when Firebase is not configured)
 // This gives full functionality with localStorage persistence.
@@ -247,6 +245,10 @@ function navigate(page, el) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
   }
+  // Sync bottom nav highlight
+  document.querySelectorAll('.bnav-btn[data-page]').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === page);
+  });
   document.querySelectorAll('.content-page').forEach(p => p.classList.remove('active'));
   const pageEl = document.getElementById(`page-${page}`);
   if (pageEl) pageEl.classList.add('active');
@@ -266,30 +268,35 @@ function navigate(page, el) {
   // Render page
   switch (page) {
     case 'dashboard': renderDashboard(); break;
-    case 'teams': renderTeams(); break;
+    case 'teams':     renderTeams();     break;
     case 'deadlines': renderDeadlines(); break;
-    case 'calendar': renderCalendar(); break;
+    case 'calendar':  renderCalendar();  break;
   }
 }
 
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
+// Bottom nav navigate — doesn't try to set sidebar nav active class
+function bnavNavigate(page, el) {
+  navigate(page, null);
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
   let overlay = document.getElementById('sidebar-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'sidebar-overlay';
-    overlay.className = 'sidebar-overlay';
-    overlay.onclick = closeSidebar;
-    document.body.appendChild(overlay);
-  }
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('show');
+  if (overlay) overlay.classList.add('show');
+  document.body.classList.add('sidebar-open');
 }
 
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   const overlay = document.getElementById('sidebar-overlay');
   if (overlay) overlay.classList.remove('show');
+  document.body.classList.remove('sidebar-open');
+}
+
+// Keep toggleSidebar as alias for hamburger
+function toggleSidebar() {
+  const isOpen = document.getElementById('sidebar').classList.contains('open');
+  isOpen ? closeSidebar() : openSidebar();
 }
 
 function toggleTheme() {
@@ -921,8 +928,10 @@ function calCell(day, ds, events, otherMonth, isToday) {
     `<span class="cal-event ${e.status}" title="${e.phaseName}">${e.phaseName}</span>`
   ).join('');
   const hasEvent = events.length > 0;
+  const firstType = events.length > 0 ? events[0].status : '';
   return `
-    <div class="cal-cell${otherMonth ? ' other-month' : ''}${isToday ? ' today' : ''}" data-has-event="${hasEvent}">
+    <div class="cal-cell${otherMonth ? ' other-month' : ''}${isToday ? ' today' : ''}"
+      data-has-event="${hasEvent}" data-event-type="${firstType}">
       <div class="cal-date">${day}</div>
       ${evHTML}
     </div>
@@ -953,6 +962,18 @@ function esc(str) {
 }
 
 // ============================================================
+// CONTACT MODAL
+// ============================================================
+function openContactModal() {
+  document.getElementById('contact-modal').classList.remove('hidden');
+  if (window.innerWidth <= 768) closeSidebar();
+}
+
+function closeContactModal() {
+  document.getElementById('contact-modal').classList.add('hidden');
+}
+
+// ============================================================
 // KEYBOARD SHORTCUTS
 // ============================================================
 document.addEventListener('keydown', e => {
@@ -962,6 +983,7 @@ document.addEventListener('keydown', e => {
     closeDeleteModal();
     closeMarksModal();
     closeTotalMarksModal();
+    closeContactModal();
     closeSidebar();
   }
   if (e.key === 'Enter' && document.getElementById('login-page').classList.contains('active')) {
