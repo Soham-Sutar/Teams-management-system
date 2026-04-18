@@ -438,9 +438,23 @@ small { font-size: 0.78rem; color: var(--text2); }
   border-radius: var(--radius);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /* Ensure it scrolls properly on mobile */
+  max-width: 100%;
+}
+/* Hint that table is scrollable on mobile */
+.table-scroll-hint {
+  display: none;
+  font-size: 0.74rem;
+  color: var(--text3);
+  text-align: center;
+  padding: 4px 0 8px;
+}
+@media (max-width: 768px) {
+  .table-scroll-hint { display: block; }
 }
 .teams-table {
   width: 100%; border-collapse: collapse; font-size: 0.83rem;
+  min-width: 700px; /* force horizontal scroll rather than squishing */
 }
 .teams-table th {
   padding: 9px 11px; text-align: left;
@@ -456,6 +470,55 @@ small { font-size: 0.78rem; color: var(--text2); }
 }
 .teams-table tr:last-child td { border-bottom: none; }
 .teams-table tr:hover td { background: var(--bg3); }
+
+/* ══════════════════════════════════════════
+   DASHBOARD MOBILE CARDS
+   (shown instead of table on small screens)
+══════════════════════════════════════════ */
+.dashboard-mobile-cards {
+  display: none; /* shown via media query */
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.dash-team-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+}
+.dash-team-name    { font-family: var(--font-display); font-weight: 700; font-size: 0.97rem; margin-bottom: 2px; }
+.dash-team-project { font-size: 0.78rem; color: var(--text2); margin-bottom: 0.9rem; }
+.dash-phases-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 0.8rem;
+}
+.dash-phase-cell {
+  background: var(--bg3);
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition);
+  touch-action: manipulation;
+}
+.dash-phase-cell:hover  { border-color: var(--accent); }
+.dash-phase-cell:active { transform: scale(0.97); }
+.dash-phase-name   { font-size: 0.65rem; color: var(--text3); margin-bottom: 2px; line-height: 1.3; }
+.dash-phase-status { font-size: 0.72rem; font-weight: 600; }
+.dash-phase-status.completed   { color: var(--green); }
+.dash-phase-status.in-progress { color: var(--yellow); }
+.dash-phase-status.pending     { color: var(--red); }
+.dash-marks-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-top: 0.6rem; padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem; flex-wrap: wrap;
+}
+.dash-marks-label { color: var(--text2); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.3px; }
+.dash-marks-value { color: var(--accent); font-weight: 700; font-family: var(--font-display); }
+.dash-marks-empty { color: var(--text3); font-style: italic; font-size: 0.75rem; }
 
 /* ══════════════════════════════════════════
    PHASE BADGES
@@ -494,65 +557,88 @@ small { font-size: 0.78rem; color: var(--text2); }
 ══════════════════════════════════════════ */
 .teams-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
 }
 .team-card {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.25rem;
+  padding: 1.6rem;
   transition: all var(--transition);
 }
 .team-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow); }
 .team-card-header {
   display: flex; align-items: flex-start; justify-content: space-between;
-  margin-bottom: 0.75rem; gap: 0.5rem;
+  margin-bottom: 1rem; gap: 0.5rem;
 }
 .team-card-title {
   font-family: var(--font-display);
-  font-size: 1rem; font-weight: 700;
+  font-size: 1.1rem; font-weight: 700;
 }
-.team-card-project { font-size: 0.82rem; color: var(--text2); margin-top: 2px; }
+.team-card-project { font-size: 0.85rem; color: var(--text2); margin-top: 3px; }
 .team-card-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
-.team-members { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 0.9rem; }
+
+/* Members table — name + phone in aligned columns */
+.team-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.member-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 7px 11px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.member-row:last-child { border-bottom: none; }
+.member-row:nth-child(even) { background: var(--bg2); }
+.member-name {
+  font-size: 0.83rem;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.member-phone {
+  color: var(--accent); font-size: 0.75rem; font-weight: 500;
+  background: var(--accent-glow); padding: 2px 8px;
+  border-radius: 99px; border: 1px solid var(--accent);
+  white-space: nowrap; transition: all var(--transition);
+  text-decoration: none; flex-shrink: 0;
+}
+.member-phone:hover { background: var(--accent); color: #fff; text-decoration: none; }
+.member-no-phone {
+  font-size: 0.72rem; color: var(--text3);
+  white-space: nowrap; flex-shrink: 0;
+}
+
 .team-phases {
   display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 6px; margin-bottom: 0.75rem;
+  gap: 6px; margin-bottom: 0.85rem;
 }
 .phase-item {
   background: var(--bg3); border-radius: 6px;
-  padding: 7px 9px; cursor: pointer;
+  padding: 8px 10px; cursor: pointer;
   transition: all var(--transition); border: 1px solid transparent;
   touch-action: manipulation;
 }
 .phase-item:hover  { border-color: var(--accent); }
 .phase-item:active { transform: scale(0.97); }
-.phase-item-label  { font-size: 0.68rem; color: var(--text3); margin-bottom: 2px; line-height: 1.3; }
+.phase-item-label  { font-size: 0.68rem; color: var(--text3); margin-bottom: 3px; line-height: 1.3; }
 .phase-item-status { font-size: 0.76rem; font-weight: 600; }
 .phase-item-status.completed   { color: var(--green); }
 .phase-item-status.in-progress { color: var(--yellow); }
 .phase-item-status.pending     { color: var(--red); }
-.team-progress { margin-top: 0.4rem; }
-
-/* Member tag + phone */
-.member-tag {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 99px;
-  padding: 3px 10px;
-  font-size: 0.78rem;
-  color: var(--text2);
-  display: inline-flex; align-items: center; gap: 5px;
-}
-.member-phone {
-  color: var(--accent); font-size: 0.72rem; font-weight: 500;
-  background: var(--accent-glow); padding: 1px 6px;
-  border-radius: 99px; border: 1px solid var(--accent);
-  white-space: nowrap; transition: all var(--transition);
-  text-decoration: none;
-}
-.member-phone:hover { background: var(--accent); color: #fff; text-decoration: none; }
+.team-progress { margin-top: 0.5rem; }
 
 /* Marks on team card */
 .team-marks-row {
@@ -640,6 +726,9 @@ small { font-size: 0.78rem; color: var(--text2); }
 .calendar-grid {
   background: var(--bg2); border: 1px solid var(--border);
   border-radius: var(--radius); overflow: hidden;
+  max-width: 1000px;
+  max-height: 490px;
+  margin: 0 auto;
 }
 .cal-days-header {
   display: grid; grid-template-columns: repeat(7, 1fr);
@@ -901,7 +990,7 @@ small { font-size: 0.78rem; color: var(--text2); }
   .main-content { margin-left: 0; }
 
   /* Extra bottom padding so content doesn't hide behind bottom nav */
-  .content-area { padding: 1rem 1rem calc(var(--bnav-h) + 1rem); }
+  .content-area { padding: 1rem 1rem calc(var(--bnav-h) + 1rem);}
 
   /* Show bottom nav */
   .bottom-nav { display: flex; }
@@ -909,7 +998,7 @@ small { font-size: 0.78rem; color: var(--text2); }
   /* Stats: 3-column on tablet-ish, 2 on phone */
   .stats-row { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
 
-  /* Teams single column */
+  /* Teams single column on mobile */
   .teams-grid { grid-template-columns: 1fr; }
 
   /* Deadlines single column */
@@ -917,6 +1006,10 @@ small { font-size: 0.78rem; color: var(--text2); }
 
   /* Phases 2-col on mobile */
   .team-phases { grid-template-columns: repeat(2, 1fr); }
+
+  /* Dashboard table: hide on mobile, show mobile cards instead */
+  .dashboard-table-wrapper { display: none; }
+  .dashboard-mobile-cards  { display: flex; flex-direction: column; gap: 0.9rem; }
 
   /* Calendar compact */
   .cal-cell { min-height: 50px; }

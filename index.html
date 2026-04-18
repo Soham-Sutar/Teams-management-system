@@ -43,7 +43,7 @@
         <span>Sign In</span>
         <span class="btn-arrow">→</span>
       </button>
-      <p class="login-hint">Forgot Password? Contact:8088059421 to reste password</p>
+      <p class="login-hint">Demo: mentor@demo.com / mentor123</p>
     </div>
   </div>
 </div>
@@ -148,25 +148,32 @@
           </div>
         </div>
 
-        <div class="table-wrapper">
-          <table class="teams-table" id="dashboard-table">
-            <thead>
-              <tr>
-                <th>Team</th>
-                <th>Idea Sub.</th>
-                <th>Proposal</th>
-                <th>Phase 1</th>
-                <th>Phase 2</th>
-                <th>Phase 3</th>
-                <th>Final Sub.</th>
-                <th>Progress</th>
-                <th>Marks</th>
-              </tr>
-            </thead>
-            <tbody id="dashboard-tbody">
-              <tr><td colspan="9" class="empty-state">No teams yet. <a href="#" onclick="navigate('teams', document.querySelector('[data-page=teams]'))">Add your first team →</a></td></tr>
-            </tbody>
-          </table>
+        <!-- Mobile cards (shown on small screens) -->
+        <div id="dashboard-mobile-cards" class="dashboard-mobile-cards"></div>
+
+        <!-- Desktop table (hidden on mobile) -->
+        <div class="dashboard-table-wrapper">
+          <p class="table-scroll-hint">← Swipe to scroll →</p>
+          <div class="table-wrapper">
+            <table class="teams-table" id="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <th>Idea Sub.</th>
+                  <th>Proposal</th>
+                  <th>Phase 1</th>
+                  <th>Phase 2</th>
+                  <th>Phase 3</th>
+                  <th>Final Sub.</th>
+                  <th>Progress</th>
+                  <th>Marks</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-tbody">
+                <tr><td colspan="9" class="empty-state">No teams yet. <a href="#" onclick="navigate('teams', document.querySelector('[data-page=teams]'))">Add your first team →</a></td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -384,11 +391,11 @@
     <div class="modal-body">
       <div class="contact-card">
         <div class="contact-avatar">S</div>
-        <div class="contact-name">Soham</div>
+        <div class="contact-name">Soham Sutar</div>
         <div class="contact-role">Developer · MentorBoard</div>
       </div>
       <div class="contact-links">
-        <a href="mailto:sohamsutar2204@gmail.com" class="contact-link">
+        <a href="sohamsutar2204@gmail.com" class="contact-link">
           <span class="contact-link-icon">✉</span>
           <div class="contact-link-info">
             <div class="contact-link-label">Email</div>

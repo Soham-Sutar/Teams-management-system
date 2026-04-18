@@ -368,12 +368,16 @@ function renderDashboard() {
   document.getElementById('stat-phases').textContent = `${completed}/6`;
   document.getElementById('stat-upcoming').textContent = getUpcomingDeadlinesCount();
 
-  const tbody = document.getElementById('dashboard-tbody');
+  const tbody       = document.getElementById('dashboard-tbody');
+  const mobileCards = document.getElementById('dashboard-mobile-cards');
+
   if (state.teams.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No teams yet. <a href="#" onclick="navigate('teams', document.querySelector('[data-page=teams]'))">Add your first team →</a></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No teams yet. <a href="#" onclick="navigate('teams', document.querySelector('[data-page=teams]'))">Add your first team →</a></td></tr>`;
+    if (mobileCards) mobileCards.innerHTML = `<div class="empty-state-card">No teams yet. Go to <strong>Teams</strong> to add one.</div>`;
     return;
   }
 
+  // ── Desktop table rows ──
   tbody.innerHTML = state.teams.map(team => {
     const { done, pct } = getTeamProgress(team);
     const phaseCells = team.phases.map((p, i) =>
@@ -402,6 +406,42 @@ function renderDashboard() {
       </tr>
     `;
   }).join('');
+
+  // ── Mobile cards ──
+  if (!mobileCards) return;
+  mobileCards.innerHTML = state.teams.map(team => {
+    const { done, pct } = getTeamProgress(team);
+    const finalDone = team.phases[5]?.status === 'completed';
+
+    const phaseCells = team.phases.map((p, i) => `
+      <div class="dash-phase-cell" onclick="openPhaseModal('${team.id}', ${i})">
+        <div class="dash-phase-name">${esc(p.name)}</div>
+        <div class="dash-phase-status ${p.status}">${statusLabel(p.status)}</div>
+      </div>`
+    ).join('');
+
+    const marksRow = finalDone ? `
+      <div class="dash-marks-row">
+        <span class="dash-marks-label">Marks:</span>
+        ${team.marks !== undefined && team.marks !== null
+          ? `<span class="dash-marks-value">${team.marks}/${state.totalMarks}</span>
+             <button class="btn btn-secondary btn-sm" onclick="openMarksModal('${team.id}')" style="margin-left:auto">✎ Edit</button>`
+          : `<span class="dash-marks-empty">Not assigned</span>
+             <button class="btn btn-secondary btn-sm" onclick="openMarksModal('${team.id}')" style="margin-left:auto">+ Assign</button>`}
+      </div>` : '';
+
+    return `
+      <div class="dash-team-card">
+        <div class="dash-team-name">${esc(team.name)}</div>
+        <div class="dash-team-project">${esc(team.project)}</div>
+        <div class="dash-phases-grid">${phaseCells}</div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div class="progress-label" style="margin-top:3px">${done}/6 phases completed</div>
+        </div>
+        ${marksRow}
+      </div>`;
+  }).join('');
 }
 
 function statusLabel(s) {
@@ -421,12 +461,18 @@ function renderTeams() {
   }
   container.innerHTML = state.teams.map(team => {
     const { done, pct } = getTeamProgress(team);
+
+    // Members in aligned rows: name left, phone right
     const members = team.members.map((m, i) => {
       const phone = (team.phones || [])[i] || '';
-      return `<span class="member-tag">
-        ${esc(m)}${phone ? `<a href="tel:${esc(phone)}" class="member-phone" title="Call ${esc(m)}">📞 ${esc(phone)}</a>` : ''}
-      </span>`;
+      return `<div class="member-row">
+        <span class="member-name">${esc(m)}</span>
+        ${phone
+          ? `<a href="tel:${esc(phone)}" class="member-phone" title="Call ${esc(m)}">📞 ${esc(phone)}</a>`
+          : `<span class="member-no-phone">—</span>`}
+      </div>`;
     }).join('');
+
     const phases = team.phases.map((p, i) => `
       <div class="phase-item" onclick="openPhaseModal('${team.id}', ${i})" title="Click to update phase status">
         <div class="phase-item-label">${esc(p.name)}</div>
