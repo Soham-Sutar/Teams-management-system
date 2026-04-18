@@ -13,12 +13,12 @@
 // ============================================================
 
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDeQnfzfXBRc1l902Uh3czbYyV2JDe6xgk",
-  authDomain: "mentorboard-5931e.firebaseapp.com",
-  projectId: "mentorboard-5931e",
-  storageBucket: "mentorboard-5931e.firebasestorage.app",
-  messagingSenderId: "9108743947",
-  appId: "1:9108743947:web:eab0d03bb64d16ef3e640e"
+  apiKey: "your-actual-api-key",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "your-sender-id",
+  appId: "your-app-id"
 };
 
 // ============================================================
