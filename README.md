@@ -1,6 +1,6 @@
 # MentorBoard — Teams Management System
 
-A clean, modern web app for mentors to manage student teams and track project phases.
+Modern web app for mentors to manage student teams and track project phases.
 
 ---
 
@@ -64,11 +64,6 @@ const FIREBASE_CONFIG = {
 - **In Progress** (🟡) — Currently active (auto-set by system)
 - **Completed** (🟢) — Done
 
-**Rules:**
-- Only one phase is "In Progress" per team at a time
-- Marking a phase "Completed" auto-advances the next phase to "In Progress"
-- Mentor can only manually set: Pending or Completed
-- A global phase is counted as "completed" only when **ALL teams** have completed it
 
 ---
 
