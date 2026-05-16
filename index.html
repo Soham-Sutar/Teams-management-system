@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0f14">
+<title>MentorBoard — Teams Management</title>
+<link rel="icon" href="Logo.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     AUTH PAGE  (login + signup tabs)
+═══════════════════════════════════════ -->
+<div id="auth-page" class="page active">
+  <div class="login-bg">
+    <div class="login-grid"></div>
+    <div class="login-glow"></div>
+  </div>
+
+  <div class="login-container">
+    <div class="login-brand">
+      <div class="brand-icon">◈</div>
+      <h1>MentorBoard</h1>
+      <p>Project Teams Management System</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login"  onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="login-card" id="form-login">
+      <div id="login-error" class="alert alert-error hidden"></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="login-email" placeholder="you@university.edu" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+          <button class="toggle-pw" onclick="togglePassword('login-password')" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="login-btn" onclick="handleLogin()">
+        <span>Sign In</span><span class="btn-arrow">→</span>
+      </button>
+      <p class="login-hint">No account? <a href="#" onclick="switchTab('signup')">Create one →</a></p>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="login-card hidden" id="form-signup">
+      <div id="signup-error" class="alert alert-error hidden"></div>
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="signup-name" placeholder="Dr. Priya Sharma" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" id="signup-email" placeholder="you@university.edu" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Password * &nbsp;<small>(min 6 chars)</small></label>
+        <div class="password-wrapper">
+          <input type="password" id="signup-password" placeholder="••••••••" autocomplete="new-password">
+          <button class="toggle-pw" onclick="togglePassword('signup-password')" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password *</label>
+        <div class="password-wrapper">
+          <input type="password" id="signup-confirm" placeholder="••••••••" autocomplete="new-password">
+          <button class="toggle-pw" onclick="togglePassword('signup-confirm')" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="signup-btn" onclick="handleSignup()">
+        <span>Create Account</span><span class="btn-arrow">→</span>
+      </button>
+      <p class="login-hint">Have an account? <a href="#" onclick="switchTab('login')">Sign in →</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     APP SHELL
+═══════════════════════════════════════ -->
+<div id="app" class="page">
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon small">◈</div>
+      <span class="brand-name">MentorBoard</span>
+      <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="dashboard" onclick="navigate('dashboard',this)">
+        <span class="nav-icon">⊞</span><span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-page="teams" onclick="navigate('teams',this)">
+        <span class="nav-icon">◎</span><span>Teams</span>
+      </a>
+      <a href="#" class="nav-item" data-page="deadlines" onclick="navigate('deadlines',this)">
+        <span class="nav-icon">◷</span><span>Deadlines</span>
+      </a>
+      <a href="#" class="nav-item" data-page="calendar" onclick="navigate('calendar',this)">
+        <span class="nav-icon">▦</span><span>Calendar</span>
+      </a>
+      <a href="#" class="nav-item nav-item-contact" onclick="openContactModal(); return false;">
+        <span class="nav-icon">✉</span><span>Contact Dev</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="mentor-info">
+        <div class="mentor-avatar" id="sidebar-avatar">M</div>
+        <div class="mentor-details">
+          <div class="mentor-name"  id="sidebar-name">Faculty</div>
+          <div class="mentor-email" id="sidebar-email">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">⎋ &nbsp;Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="openSidebar()">☰</button>
+        <h2 id="page-title">Dashboard</h2>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-contact-topbar" onclick="openContactModal()" title="Contact Developer">✉</button>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <span id="theme-icon">☀</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loading-spinner"></div>
+      <p>Loading…</p>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ── DASHBOARD ── -->
+      <section id="page-dashboard" class="content-page active">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon">◎</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-teams">0</div>
+              <div class="stat-label">Total Teams</div>
+            </div>
+          </div>
+          <div class="stat-card accent">
+            <div class="stat-icon">✓</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-phases">0/6</div>
+              <div class="stat-label">Phases Completed</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">◷</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-upcoming">0</div>
+              <div class="stat-label">Upcoming Deadlines</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h3>Team Overview</h3>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <button class="btn btn-secondary btn-sm" onclick="openTotalMarksModal()">⚙ Set Total Marks</button>
+            <button class="btn btn-secondary btn-sm" onclick="navigate('teams',document.querySelector('[data-page=teams]'))">+ Add Team</button>
+          </div>
+        </div>
+
+        <!-- Mobile: stacked cards -->
+        <div id="dashboard-cards" class="dashboard-mobile-cards"></div>
+
+        <!-- Desktop: scrollable table -->
+        <div class="dashboard-table-wrapper">
+          <p class="table-scroll-hint">← Swipe to scroll →</p>
+          <div class="table-wrapper">
+            <table class="teams-table">
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <th>Idea Sub.</th>
+                  <th>Proposal</th>
+                  <th>Phase 1</th>
+                  <th>Phase 2</th>
+                  <th>Phase 3</th>
+                  <th>Final Sub.</th>
+                  <th>Progress</th>
+                  <th>Marks</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-tbody">
+                <tr><td colspan="9" class="empty-state">No teams yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── TEAMS ── -->
+      <section id="page-teams" class="content-page">
+        <div class="section-header">
+          <h3>All Teams</h3>
+          <button class="btn btn-primary btn-sm" onclick="openTeamModal()">+ New Team</button>
+        </div>
+        <div id="teams-list" class="teams-grid">
+          <div class="empty-state-card">No teams yet. Tap "New Team" to get started.</div>
+        </div>
+      </section>
+
+      <!-- ── DEADLINES ── -->
+      <section id="page-deadlines" class="content-page">
+        <div class="section-header">
+          <h3>Phase Deadlines</h3>
+          <p class="section-sub">Global — shared across all your teams</p>
+        </div>
+        <div class="deadlines-grid" id="deadlines-grid"></div>
+        <div class="section-header" style="margin-top:2rem">
+          <h3>Missed Deadlines</h3>
+        </div>
+        <div id="missed-section">
+          <div class="empty-state-card">No missed deadlines.</div>
+        </div>
+      </section>
+
+      <!-- ── CALENDAR ── -->
+      <section id="page-calendar" class="content-page">
+        <div class="calendar-header-row">
+          <button class="btn btn-secondary btn-sm" onclick="prevMonth()">‹</button>
+          <h3 id="cal-month-label">Month Year</h3>
+          <button class="btn btn-secondary btn-sm" onclick="nextMonth()">›</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+        <div class="calendar-legend">
+          <span class="legend-item"><span class="dot green"></span>All done</span>
+          <span class="legend-item"><span class="dot yellow"></span>Upcoming</span>
+          <span class="legend-item"><span class="dot red"></span>Missed</span>
+        </div>
+      </section>
+
+    </div><!-- /content-area -->
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="bnav-item active" data-page="dashboard" onclick="bnavNavigate('dashboard',this)">
+        <span class="bnav-icon">⊞</span><span>Home</span>
+      </button>
+      <button class="bnav-item" data-page="teams" onclick="bnavNavigate('teams',this)">
+        <span class="bnav-icon">◎</span><span>Teams</span>
+      </button>
+      <button class="bnav-item" data-page="deadlines" onclick="bnavNavigate('deadlines',this)">
+        <span class="bnav-icon">◷</span><span>Deadlines</span>
+      </button>
+      <button class="bnav-item" data-page="calendar" onclick="bnavNavigate('calendar',this)">
+        <span class="bnav-icon">▦</span><span>Calendar</span>
+      </button>
+      <button class="bnav-item" onclick="openContactModal()">
+        <span class="bnav-icon">✉</span><span>Contact</span>
+      </button>
+    </nav>
+
+  </div><!-- /main-content -->
+</div><!-- /app -->
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- Team Modal -->
+<div id="team-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">New Team</h3>
+      <button class="modal-close" onclick="closeTeamModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modal-team-id">
+      <div class="form-group">
+        <label>Team Name *</label>
+        <input type="text" id="modal-team-name" placeholder="e.g. Team Alpha">
+      </div>
+      <div class="form-group">
+        <label>Project Title *</label>
+        <input type="text" id="modal-project-title" placeholder="e.g. Smart Campus Navigator">
+      </div>
+      <div class="form-group">
+        <label>Members <small>(one per line)</small> *</label>
+        <textarea id="modal-members" placeholder="Alice Johnson&#10;Bob Smith&#10;Carol White" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Member Contact Numbers <small>(one per line, same order)</small></label>
+        <textarea id="modal-phones" placeholder="9876543210&#10;9123456789&#10;9000011111" rows="4"></textarea>
+        <div style="font-size:0.74rem;color:var(--text2);margin-top:4px;">Match the order of members above. Leave blank to skip.</div>
+      </div>
+      <div id="modal-error" class="alert alert-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeTeamModal()">Cancel</button>
+      <button class="btn btn-primary"   onclick="saveTeam()">Save Team</button>
+    </div>
+  </div>
+</div>
+
+<!-- Phase Modal -->
+<div id="phase-modal" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 id="phase-modal-title">Update Phase</h3>
+      <button class="modal-close" onclick="closePhaseModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="phase-modal-desc" class="modal-desc"></p>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="phase-status-select">
+          <option value="pending">○ Pending</option>
+          <option value="completed">✓ Completed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Phase Report <small>(optional notes / observations)</small></label>
+        <textarea id="phase-report-text" placeholder="Write a short report or observations for this phase…" rows="4" style="margin-top:4px"></textarea>
+      </div>
+      <input type="hidden" id="phase-modal-team-id">
+      <input type="hidden" id="phase-modal-phase-idx">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePhaseModal()">Cancel</button>
+      <button class="btn btn-primary"   onclick="savePhaseStatus()">Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="delete-modal" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>Delete Team</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Delete <strong id="delete-team-name"></strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger"    onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Marks Modal -->
+<div id="marks-modal" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3 id="marks-modal-title">Assign Marks</h3>
+      <button class="modal-close" onclick="closeMarksModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="marks-modal-desc" class="modal-desc"></p>
+      <div class="form-group">
+        <label>Marks Obtained <span id="marks-out-of-label" style="font-weight:400;text-transform:none"></span></label>
+        <input type="number" id="marks-input" min="0" placeholder="e.g. 45">
+      </div>
+      <div id="marks-error" class="alert alert-error hidden"></div>
+      <input type="hidden" id="marks-team-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeMarksModal()">Cancel</button>
+      <button class="btn btn-primary"   onclick="saveMarks()">Save Marks</button>
+    </div>
+  </div>
+</div>
+
+<!-- Total Marks Modal -->
+<div id="total-marks-modal" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>Set Total Marks</h3>
+      <button class="modal-close" onclick="closeTotalMarksModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">Sets the maximum marks for Final Submission evaluation. Applies to all teams.</p>
+      <div class="form-group">
+        <label>Total Marks *</label>
+        <input type="number" id="total-marks-input" min="1" placeholder="e.g. 100">
+      </div>
+      <div id="total-marks-error" class="alert alert-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeTotalMarksModal()">Cancel</button>
+      <button class="btn btn-primary"   onclick="saveTotalMarks()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Contact Modal -->
+<div id="contact-modal" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>Contact Developer</h3>
+      <button class="modal-close" onclick="closeContactModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="contact-card">
+        <div class="contact-avatar">S</div>
+        <div class="contact-name">Soham</div>
+        <div class="contact-role">Developer · MentorBoard</div>
+      </div>
+      <div class="contact-links">
+        <a href="mailto:sohamsutar2204@gmail.com" class="contact-link">
+          <span class="contact-link-icon">✉</span>
+          <div class="contact-link-info">
+            <div class="contact-link-label">Email</div>
+            <div class="contact-link-value">sohamsutar2204@gmail.com</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+        <a href="tel:+918088059421" class="contact-link">
+          <span class="contact-link-icon">📞</span>
+          <div class="contact-link-info">
+            <div class="contact-link-label">Phone</div>
+            <div class="contact-link-value">+91 8088059421</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+        <a href="https://www.linkedin.com/in/soham-sutar-b6664b291/" target="_blank" rel="noopener" class="contact-link">
+          <span class="contact-link-icon">💼</span>
+          <div class="contact-link-info">
+            <div class="contact-link-label">LinkedIn</div>
+            <div class="contact-link-value">linkedin.com/in/soham-sutar</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+      </div>
+      <p class="contact-note">Reach out for any issues, feedback, or feature requests.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
