@@ -41,7 +41,13 @@
 //  FIREBASE CONFIG  ← replace with yours
 // ─────────────────────────────────────────────
 const FIREBASE_CONFIG = {
-  
+  apiKey: "AIzaSyAS5iAgf-YZS6g5mN6xNPbJoNohYwjDLKI",
+  authDomain: "teams-management-system-new.firebaseapp.com",
+  projectId: "teams-management-system-new",
+  storageBucket: "teams-management-system-new.firebasestorage.app",
+  messagingSenderId: "1097203076635",
+  appId: "1:1097203076635:web:2153ab1d0b0454971532be",
+  measurementId: "G-B2SGJ1F3BD"
 };
 
 // ─────────────────────────────────────────────
