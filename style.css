@@ -533,6 +533,7 @@ small { font-size: .78rem; color: var(--text2); font-weight: 400; }
   border-radius: 99px; font-weight: 600;
 }
 .deadline-status-badge.upcoming { background: var(--yellow-bg); color: var(--yellow); }
+.deadline-status-badge.done     { background: var(--green-bg);  color: var(--green); }
 .deadline-status-badge.missed   { background: var(--red-bg);    color: var(--red); }
 .deadline-status-badge.no-date  { background: var(--bg3);       color: var(--text3); }
 .deadline-date-display { font-size: .83rem; color: var(--text2); margin-bottom: .7rem; }

@@ -873,7 +873,7 @@ function renderDeadlines() {
     const dl = S.deadlines[i];
     let badge, cls;
     if (!dl)             { badge = "Not Set"; cls = "no-date"; }
-    else if (dl < today) { badge = "Missed";  cls = "missed"; }
+    else if (dl < today) { badge = "Done";    cls = "done"; }
     else                 { badge = "Upcoming";cls = "upcoming"; }
     return `<div class="deadline-card">
       <div class="deadline-card-header">
