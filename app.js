@@ -77,9 +77,7 @@ let S = {
   fb:              null,
   db:              null,
   auth:            null,
-  fbUnsubTeams:    null,
-  fbUnsubDeadlines:null,
-  fbUnsubSettings: null,
+  fbUnsubscribers: [],
   currentPage:     "dashboard",
   pendingDeleteId: null,
 };
@@ -100,7 +98,7 @@ async function initFirebase() {
     const {
       getAuth, createUserWithEmailAndPassword,
       signInWithEmailAndPassword, signOut, onAuthStateChanged,
-      updateProfile
+      updateProfile, GoogleAuthProvider, signInWithPopup
     } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
     const {
       getFirestore, collection, doc,
@@ -113,6 +111,7 @@ async function initFirebase() {
     S.fb   = {
       createUserWithEmailAndPassword, signInWithEmailAndPassword,
       signOut, onAuthStateChanged, updateProfile,
+      GoogleAuthProvider, signInWithPopup,
       collection, doc, getDocs, setDoc, deleteDoc, getDoc, onSnapshot
     };
     S.useFirebase = true;
@@ -261,11 +260,46 @@ async function handleLogin() {
 }
 
 // ─────────────────────────────────────────────
-//  LOGOUT
+//  GOOGLE SIGN-IN
 // ─────────────────────────────────────────────
+async function handleGoogleSignIn() {
+  const errEl = id("login-error");
+  errEl.classList.add("hidden");
+
+  if (!S.useFirebase) {
+    showErr(errEl, "Google sign-in requires Firebase to be configured.");
+    return;
+  }
+
+  try {
+    const provider = new S.fb.GoogleAuthProvider();
+    const cred     = await S.fb.signInWithPopup(S.auth, provider);
+    const user     = cred.user;
+    const uid      = user.uid;
+    const email    = user.email;
+    const name     = user.displayName || email.split("@")[0];
+
+    // Save / update profile in Firestore (creates it for new users)
+    await S.fb.setDoc(
+      S.fb.doc(S.db, "users", uid, "profile", "info"),
+      { name, email },
+      { merge: true }
+    );
+
+    S.currentUser = { uid, email, name };
+    S.loggedIn    = true;
+    persistLocalSession();
+    await loadFirebaseData();
+    showToast(`Welcome, ${name}! 🎉`, "success");
+    showApp();
+  } catch (e) {
+    if (e.code === "auth/popup-closed-by-user") return; // user dismissed
+    showErr(errEl, firebaseErrMsg(e.code));
+  }
+}
 async function handleLogout() {
+  clearFirebaseListeners();
   if (S.useFirebase && S.auth) await S.fb.signOut(S.auth).catch(() => {});
-  detachFirebaseListeners();
   S.loggedIn    = false;
   S.currentUser = null;
   S.teams       = [];
@@ -282,7 +316,7 @@ async function handleLogout() {
 // ─────────────────────────────────────────────
 //  FIREBASE DATA — per-user isolated paths
 // ─────────────────────────────────────────────
-function userPath(sub)       { return ["users", S.currentUser.uid, sub]; }
+function userPath(sub)       { return `users/${S.currentUser.uid}/${sub}`; }
 function userTeamsPath()     { return userPath("teams"); }
 function userDeadlinesPath() { return userPath("deadlines"); }
 function userSettingsPath()  { return userPath("settings"); }
@@ -294,17 +328,17 @@ async function loadFirebaseData() {
     const { collection, getDocs, getDoc, doc } = S.fb;
 
     // Teams
-    const teamsSnap = await getDocs(collection(S.db, ...userTeamsPath()));
+    const teamsSnap = await getDocs(collection(S.db, userTeamsPath()));
     S.teams = teamsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
     // Deadlines
-    const dlSnap = await getDocs(collection(S.db, ...userDeadlinesPath()));
+    const dlSnap = await getDocs(collection(S.db, userDeadlinesPath()));
     S.deadlines = {};
     dlSnap.docs.forEach(d => { S.deadlines[d.id] = d.data().date; });
 
     // Settings (totalMarks)
     try {
-      const settSnap = await getDoc(doc(S.db, ...userSettingsPath(), "marks"));
+      const settSnap = await getDoc(doc(S.db, userSettingsPath(), "marks"));
       if (settSnap.exists() && settSnap.data().totalMarks) {
         S.totalMarks = settSnap.data().totalMarks;
       }
@@ -318,80 +352,70 @@ async function loadFirebaseData() {
 
 async function fbSaveTeam(team) {
   if (!S.useFirebase || !S.db) return;
-  await S.fb.setDoc(S.fb.doc(S.db, ...userTeamsPath(), team.id), team);
+  await S.fb.setDoc(S.fb.doc(S.db, userTeamsPath(), team.id), team);
 }
 
 async function fbDeleteTeam(teamId) {
   if (!S.useFirebase || !S.db) return;
-  await S.fb.deleteDoc(S.fb.doc(S.db, ...userTeamsPath(), teamId));
+  await S.fb.deleteDoc(S.fb.doc(S.db, userTeamsPath(), teamId));
 }
 
 async function fbSaveDeadline(idx, date) {
   if (!S.useFirebase || !S.db) return;
-  await S.fb.setDoc(S.fb.doc(S.db, ...userDeadlinesPath(), String(idx)), { date });
+  await S.fb.setDoc(S.fb.doc(S.db, userDeadlinesPath(), String(idx)), { date });
 }
 
 async function fbDeleteDeadline(idx) {
   if (!S.useFirebase || !S.db) return;
-  await S.fb.deleteDoc(S.fb.doc(S.db, ...userDeadlinesPath(), String(idx))).catch(() => {});
+  await S.fb.deleteDoc(S.fb.doc(S.db, userDeadlinesPath(), String(idx))).catch(() => {});
 }
 
 async function fbSaveTotalMarks(total) {
   if (!S.useFirebase || !S.db) return;
-  await S.fb.setDoc(S.fb.doc(S.db, ...userSettingsPath(), "marks"), { totalMarks: total });
+  await S.fb.setDoc(S.fb.doc(S.db, userSettingsPath(), "marks"), { totalMarks: total });
 }
 
-function detachFirebaseListeners() {
-  if (S.fbUnsubTeams)     { S.fbUnsubTeams();     S.fbUnsubTeams     = null; }
-  if (S.fbUnsubDeadlines) { S.fbUnsubDeadlines(); S.fbUnsubDeadlines = null; }
-  if (S.fbUnsubSettings)  { S.fbUnsubSettings();  S.fbUnsubSettings  = null; }
+function clearFirebaseListeners() {
+  (S.fbUnsubscribers || []).forEach(fn => { try { fn(); } catch (_) {} });
+  S.fbUnsubscribers = [];
 }
 
-function refreshCurrentPage() {
-  switch (S.currentPage) {
-    case "dashboard": renderDashboard(); break;
-    case "teams":     renderTeams();     break;
-    case "deadlines": renderDeadlines(); break;
-    case "calendar":  renderCalendar();  break;
-  }
-}
-
-function attachFirebaseRealtimeListeners() {
-  if (!S.useFirebase || !S.db) return;
-  detachFirebaseListeners();
+function setupFirebaseRealtime() {
+  if (!S.useFirebase || !S.db || !S.currentUser) return;
+  clearFirebaseListeners();
   const { collection, doc, onSnapshot } = S.fb;
 
-  S.fbUnsubTeams = onSnapshot(
-    collection(S.db, ...userTeamsPath()),
-    snap => {
-      S.teams = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      refreshCurrentPage();
-    },
-    e => console.warn("Firebase teams listener error:", e)
-  );
+  const teamsRef = collection(S.db, userTeamsPath());
+  const teamsUnsub = onSnapshot(teamsRef, snap => {
+    S.teams = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    saveLocalData();
+    renderDashboard();
+    if (S.currentPage === "teams") renderTeams();
+    if (S.currentPage === "deadlines") renderDeadlines();
+    if (S.currentPage === "calendar") renderCalendar();
+  });
+  S.fbUnsubscribers.push(teamsUnsub);
 
-  S.fbUnsubDeadlines = onSnapshot(
-    collection(S.db, ...userDeadlinesPath()),
-    snap => {
-      S.deadlines = {};
-      snap.docs.forEach(d => { S.deadlines[d.id] = d.data().date; });
-      refreshCurrentPage();
-    },
-    e => console.warn("Firebase deadlines listener error:", e)
-  );
+  const deadlinesRef = collection(S.db, userDeadlinesPath());
+  const deadlinesUnsub = onSnapshot(deadlinesRef, snap => {
+    S.deadlines = {};
+    snap.docs.forEach(d => { S.deadlines[d.id] = d.data().date; });
+    saveLocalData();
+    if (S.currentPage === "deadlines") renderDeadlines();
+    if (S.currentPage === "calendar") renderCalendar();
+    if (S.currentPage === "dashboard") renderDashboard();
+  });
+  S.fbUnsubscribers.push(deadlinesUnsub);
 
-  S.fbUnsubSettings = onSnapshot(
-    doc(S.db, ...userSettingsPath(), "marks"),
-    snap => {
-      if (snap.exists() && snap.data()?.totalMarks) {
-        S.totalMarks = snap.data().totalMarks;
-      } else {
-        S.totalMarks = 100;
-      }
-      refreshCurrentPage();
-    },
-    e => console.warn("Firebase settings listener error:", e)
-  );
+  const settingsRef = doc(S.db, userSettingsPath(), "marks");
+  const settingsUnsub = onSnapshot(settingsRef, snap => {
+    if (snap.exists() && snap.data()?.totalMarks) {
+      S.totalMarks = snap.data().totalMarks;
+      saveLocalData();
+      if (S.currentPage === "dashboard") renderDashboard();
+    }
+  });
+  S.fbUnsubscribers.push(settingsUnsub);
 }
 
 // ─────────────────────────────────────────────
@@ -429,8 +453,8 @@ function showApp() {
   id("sidebar-avatar").textContent = name.charAt(0).toUpperCase();
   id("sidebar-name").textContent   = name;
   id("sidebar-email").textContent  = email;
-  if (S.useFirebase) attachFirebaseRealtimeListeners();
   navigate("dashboard", document.querySelector('[data-page="dashboard"]'));
+  if (S.useFirebase) setupFirebaseRealtime();
 }
 
 // ─────────────────────────────────────────────
@@ -462,6 +486,12 @@ function navigate(page, el) {
 }
 
 function bnavNavigate(page, el) { navigate(page, null); }
+
+function refreshActiveViews() {
+  if (S.currentPage === "deadlines") renderDeadlines();
+  if (S.currentPage === "calendar") renderCalendar();
+  if (S.currentPage === "dashboard") renderDashboard();
+}
 
 function openSidebar() {
   id("sidebar").classList.add("open");
@@ -930,9 +960,22 @@ function renderDeadlines() {
   id("deadlines-grid").innerHTML = PHASES.map((name, i) => {
     const dl = S.deadlines[i];
     let badge, cls;
-    if (!dl)             { badge = "Not Set"; cls = "no-date"; }
-    else if (dl < today) { badge = "Done";    cls = "done"; }
-    else                 { badge = "Upcoming";cls = "upcoming"; }
+    if (!dl) {
+      badge = "Not Set";
+      cls = "no-date";
+    } else {
+      const allDone = S.teams.length && S.teams.every(t => t.phases[i]?.status === "completed");
+      if (dl < today && allDone) {
+        badge = "Done";
+        cls = "completed";
+      } else if (dl < today) {
+        badge = "Missed";
+        cls = "missed";
+      } else {
+        badge = "Upcoming";
+        cls = "upcoming";
+      }
+    }
     return `<div class="deadline-card">
       <div class="deadline-card-header">
         <div class="deadline-phase-name">${esc(name)}</div>
@@ -1116,10 +1159,7 @@ async function init() {
             }
           });
         });
-        if (S.loggedIn) {
-          await loadFirebaseData();
-          attachFirebaseRealtimeListeners();
-        }
+        if (S.loggedIn) await loadFirebaseData();
       } else {
         loadLocalData();
       }
@@ -1134,6 +1174,8 @@ async function init() {
       localStorage.setItem("mb_accounts", JSON.stringify(accs));
     }
   }
+
+  setInterval(refreshActiveViews, 60000);
 }
 
 init();

@@ -533,7 +533,7 @@ small { font-size: .78rem; color: var(--text2); font-weight: 400; }
   border-radius: 99px; font-weight: 600;
 }
 .deadline-status-badge.upcoming { background: var(--yellow-bg); color: var(--yellow); }
-.deadline-status-badge.done     { background: var(--green-bg);  color: var(--green); }
+.deadline-status-badge.completed { background: var(--green-bg); color: var(--green); }
 .deadline-status-badge.missed   { background: var(--red-bg);    color: var(--red); }
 .deadline-status-badge.no-date  { background: var(--bg3);       color: var(--text3); }
 .deadline-date-display { font-size: .83rem; color: var(--text2); margin-bottom: .7rem; }
@@ -1069,4 +1069,45 @@ body.sidebar-open { overflow: hidden; }
   .stat-card:last-child { grid-column: 1 / -1; }
   .topbar { padding: 0 .9rem; }
   .team-phases { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── GOOGLE SIGN-IN BUTTON ── */
+.btn-google {
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  font-weight: 500;
+  font-size: .88rem;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--tr);
+  touch-action: manipulation;
+}
+.btn-google:hover {
+  border-color: #4285F4;
+  background: var(--bg3);
+  transform: translateY(-1px);
+}
+.btn-google:active { transform: scale(.97); }
+
+/* ── AUTH DIVIDER ── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: .5rem 0;
+  color: var(--text3);
+  font-size: .78rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
