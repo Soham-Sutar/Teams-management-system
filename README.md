@@ -20,7 +20,6 @@ A web-based project management tool built for faculty members to independently m
 - [Firebase Setup](#firebase-setup)
 - [Firestore Security Rules](#firestore-security-rules)
 - [Deployment](#deployment)
-- [Screenshots](#screenshots)
 - [FAQ](#faq)
 
 ---
